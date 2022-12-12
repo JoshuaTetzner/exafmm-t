@@ -1,0 +1,1 @@
+/usr/bin/c++  -O2 -std=c++11 -fopenmp -O3 -DNDEBUG CMakeFiles/fmm_modified_helmholtz.dir/tests/fmm_modified_helmholtz.cpp.o -o fmm_modified_helmholtz  /usr/lib/libopenblas.so /usr/lib/libopenblas.so -lm -ldl /usr/lib/libfftw3.so /usr/lib/libfftw3f.so 

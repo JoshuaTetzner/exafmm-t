@@ -1,0 +1,1 @@
+/usr/bin/c++  -O2 -std=c++11 -fopenmp -O3 -DNDEBUG CMakeFiles/fmm_laplace.dir/tests/fmm_laplace.cpp.o -o fmm_laplace  /usr/lib/libopenblas.so /usr/lib/libopenblas.so -lm -ldl /usr/lib/libfftw3.so /usr/lib/libfftw3f.so 
