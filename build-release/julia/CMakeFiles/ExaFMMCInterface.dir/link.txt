@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC  -O2 -std=c++11 -fopenmp -O3 -DNDEBUG -shared -Wl,-soname,libExaFMMCInterface.so -o libExaFMMCInterface.so CMakeFiles/ExaFMMCInterface.dir/ExaFMMCInterface.cpp.o  /usr/lib/libopenblas.so /usr/lib/libopenblas.so -lm -ldl /usr/lib/libfftw3.so /usr/lib/libfftw3f.so 

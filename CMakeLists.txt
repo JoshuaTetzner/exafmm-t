@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.6)
-project (exafmm-t CXX)
+project (exafmm-t C CXX)
 
 # cmake settings
 set (CMAKE_VERBOSE_MAKEFILE on)
@@ -7,7 +7,7 @@ set (CMAKE_COLOR_MAKEFILE on)
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake-modules")
 
 # set CXX_FLAGS
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -march=native")
+set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")# -march=native")
 
 # check compiler support c++11 standard
 include(CheckCXXCompilerFlag)
@@ -39,7 +39,7 @@ include_directories (${PROJECT_SOURCE_DIR}/include)
 add_executable (fmm_laplace tests/fmm_laplace.cpp)
 add_executable (fmm_helmholtz tests/fmm_helmholtz.cpp)
 add_executable (fmm_modified_helmholtz tests/fmm_modified_helmholtz.cpp)
-add_executable (ExaFMMCInterface julia/ExaFMMCInterface.c)
+
 
 target_link_libraries (fmm_laplace PRIVATE ${BLAS_LIBRARIES}
                                    PRIVATE ${LAPACK_LIBRARIES}
@@ -53,6 +53,4 @@ target_link_libraries (fmm_modified_helmholtz PRIVATE ${BLAS_LIBRARIES}
                                               PRIVATE ${LAPACK_LIBRARIES}
                                               PRIVATE ${FFTW_LIBRARIES})
 
-target_link_libraries (ExaFMMCInterface PRIVATE ${BLAS_LIBRARIES}
-                                        PRIVATE ${LAPACK_LIBRARIES}
-                                        PRIVATE ${FFTW_LIBRARIES})
+add_subdirectory(julia)

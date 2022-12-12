@@ -1,8 +1,0 @@
-/home/jt286/Documents/Code/C++/exafmm-t/build-release/CMakeFiles/fmm_laplace.dir
-/home/jt286/Documents/Code/C++/exafmm-t/build-release/CMakeFiles/fmm_helmholtz.dir
-/home/jt286/Documents/Code/C++/exafmm-t/build-release/CMakeFiles/fmm_modified_helmholtz.dir
-/home/jt286/Documents/Code/C++/exafmm-t/build-release/CMakeFiles/edit_cache.dir
-/home/jt286/Documents/Code/C++/exafmm-t/build-release/CMakeFiles/rebuild_cache.dir
-/home/jt286/Documents/Code/C++/exafmm-t/build-release/julia/CMakeFiles/ExaFMMCInterface.dir
-/home/jt286/Documents/Code/C++/exafmm-t/build-release/julia/CMakeFiles/edit_cache.dir
-/home/jt286/Documents/Code/C++/exafmm-t/build-release/julia/CMakeFiles/rebuild_cache.dir
