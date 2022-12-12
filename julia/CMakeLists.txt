@@ -5,5 +5,5 @@ target_link_libraries (ExaFMMCInterface PRIVATE ${BLAS_LIBRARIES}
                                         PRIVATE ${FFTW_LIBRARIES})
 
 install(TARGETS ExaFMMCInterface 
-        LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+        LIBRARY DESTINATION /home/jt286/Documents/Code/C++/exafmm-t/lib
 )
