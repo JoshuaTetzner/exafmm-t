@@ -1,5 +1,5 @@
 #include <iostream>
-#include<unistd.h>
+#include <unistd.h>
 #include "exafmm_t.h"
 #include "dataset.h"
 #include "laplace.h"
@@ -22,23 +22,29 @@ template <typename T> using Node = exafmm_t::Node<T>;
 template <typename T> using Nodes = exafmm_t::Nodes<T>;
 template <typename T> using NodePtrs = exafmm_t::NodePtrs<T>;
 
+
 extern "C" {
-  void* init_sources_F64(real_t* coords , real_t* charges, int nsrcs);
-  void* init_sources_C64(real_t* coords , complex_t* charges, int nsrcs);
-  void* init_targets_F64(real_t* coords, int ntarg);
-  void* init_targets_C64(real_t* coords, int ntarg);
-  void* LaplaceFMM(int p, int ncrit);
-  void* HelmholtzFMM(int p, int ncrit, complex_t wavek);
-  void* setup_laplace(void* src, void* trg, void* pfmm);
-  void* setup_helmholtz(void* src, void* trg, void* pfmm);
+  Bodies<real_t>* init_sources(real_t* coords , real_t* charges, int nsrcs);
+  Bodies<complex_t>* init_sources_C(real_t* coords , complex_t* charges, int nsrcs);
+  Bodies<real_t>* init_targets_F(real_t* coords, int ntarg);
+  Bodies<complex_t>* init_targets_C(real_t* coords, int ntarg);
+  exafmm_t::LaplaceFmm* LaplaceFMM(int p, int ncrit);
+  exafmm_t::HelmholtzFmm* HelmholtzFMM(int p, int ncrit, complex_t wavek);
+  exafmm_t::ModifiedHelmholtzFmm* ModifiedHelmholtzFMM(int p, int ncrit, real_t wavek);
+  void* setup_laplace(Bodies<real_t>* sources, Bodies<real_t>* targets, exafmm_t::LaplaceFmm* fmm);
+  void* setup_helmholtz(Bodies<complex_t>* src, Bodies<complex_t>* trg, exafmm_t::HelmholtzFmm* pfmm);
+  void* setup_modifiedhelmholtz(Bodies<real_t>* src, Bodies<real_t>* trg, exafmm_t::ModifiedHelmholtzFmm* fmm);
   real_t* evaluate_laplace(void* fmmstruct);
   complex_t* evaluate_helmholtz(void* fmmstruct);
+  complex_t* evaluate_modifiedhelmholtz(void* fmmstruct);
   void update_charges_real(void* fmm, real_t* charges);
   void update_charges_cplx(void* fmm, complex_t* charges);
   void clear_values(void* fmm);
+  void freestorage_real (exafmm_t::FmmBase<real_t>* fmm, void* fmmstruct, Bodies<real_t>* src, Bodies<real_t>* trg);
+  void freestorage_cplx(exafmm_t::FmmBase<complex_t>* fmm, void* fmmstruct, Bodies<complex_t>* src, Bodies<complex_t>* trg);
 }
 
-void* init_sources_F64(real_t* coords , real_t* charges, int nsrcs) {
+Bodies<real_t>* init_sources(real_t* coords , real_t* charges, int nsrcs) {
   Bodies<real_t>* sources = new Bodies<real_t>(nsrcs);
   #pragma omp parallel for
   for(ssize_t i=0; i<nsrcs; ++i) {
@@ -49,10 +55,10 @@ void* init_sources_F64(real_t* coords , real_t* charges, int nsrcs) {
     (*sources)[i].ibody = i;
   }
 
-  return reinterpret_cast<void*> (sources);
+  return sources;
 }
 
-void* init_sources_C64(real_t* coords , complex_t* charges, int nsrcs) {
+Bodies<complex_t>* init_sources_C(real_t* coords , complex_t* charges, int nsrcs) {
   Bodies<complex_t>* sources = new Bodies<complex_t>(nsrcs);
   #pragma omp parallel for
   for(ssize_t i=0; i<nsrcs; ++i) {
@@ -63,10 +69,10 @@ void* init_sources_C64(real_t* coords , complex_t* charges, int nsrcs) {
     (*sources)[i].ibody = i;
   }
 
-  return reinterpret_cast<void*> (sources);
+  return sources;
 }
 
-void* init_targets_F64(real_t* coords, int ntarg) {
+Bodies<real_t>* init_targets_F(real_t* coords, int ntarg) {
   Bodies<real_t>* sources = new Bodies<real_t>(ntarg);
   #pragma omp parallel for
   for(ssize_t i=0; i<ntarg; ++i) {
@@ -76,10 +82,10 @@ void* init_targets_F64(real_t* coords, int ntarg) {
     (*sources)[i].ibody = i;
   }
 
-  return reinterpret_cast<void*> (sources);
+  return sources;
 }
 
-void* init_targets_C64(real_t* coords, int ntarg) {
+Bodies<complex_t>* init_targets_C(real_t* coords, int ntarg) {
   Bodies<complex_t>* sources = new Bodies<complex_t>(ntarg);
   #pragma omp parallel for
   for(ssize_t i=0; i<ntarg; ++i) {
@@ -89,8 +95,9 @@ void* init_targets_C64(real_t* coords, int ntarg) {
     (*sources)[i].ibody = i;
   }
 
-  return reinterpret_cast<void*> (sources);
+  return sources;
 }
+
 
 template <typename T>
 struct Tree {
@@ -112,90 +119,79 @@ void build_list(Tree<T>& tree, exafmm_t::FmmBase<T>& fmm) {
   exafmm_t::build_list<T>(tree.nodes, fmm);
 }
 
-void* LaplaceFMM(int p, int ncrit){
+exafmm_t::LaplaceFmm* LaplaceFMM(int p, int ncrit){
   exafmm_t::LaplaceFmm* fmm = new exafmm_t::LaplaceFmm(p, ncrit);
-  return reinterpret_cast<void*> (fmm);
+  return fmm;
 }
 
-void* HelmholtzFMM(int p, int ncrit, complex_t wavek){
+exafmm_t::HelmholtzFmm* HelmholtzFMM(int p, int ncrit, complex_t wavek){
   exafmm_t::HelmholtzFmm* fmm = new exafmm_t::HelmholtzFmm(p, ncrit, wavek);
-  return reinterpret_cast<void*> (fmm);
+  return fmm;
 }
 
-void* ModifiedHelmholtzFMM(int p, int ncrit, real_t wavek){
+exafmm_t::ModifiedHelmholtzFmm* ModifiedHelmholtzFMM(int p, int ncrit, real_t wavek){
   exafmm_t::ModifiedHelmholtzFmm* fmm = new exafmm_t::ModifiedHelmholtzFmm(p, ncrit, wavek);
-  return reinterpret_cast<void*> (fmm);
+  return fmm;
 }
 
-struct Laplace {
+struct LaplaceStruct {
   exafmm_t::LaplaceFmm* fmm;
   Tree<real_t>* tree;
 };
 
-struct Helmholtz {
+struct HelmholtzStruct {
   exafmm_t::HelmholtzFmm* fmm;
   Tree<complex_t>* tree;
 };
 
-struct ModifiedHelmholtz {
+struct ModifiedHelmholtzStruct {
   exafmm_t::ModifiedHelmholtzFmm* fmm;
   Tree<real_t>* tree;
 };
 
-void* setup_laplace(void* src, void* trg, void* pfmm)
+void* setup_laplace(Bodies<real_t>* sources, Bodies<real_t>* targets, exafmm_t::LaplaceFmm* fmm)
 {
-  Bodies<real_t>* sources = reinterpret_cast<Bodies<real_t>*> (src);
-  Bodies<real_t>* targets = reinterpret_cast<Bodies<real_t>*> (trg);
-  exafmm_t::LaplaceFmm* fmm = reinterpret_cast<exafmm_t::LaplaceFmm*> (pfmm);
-
   Tree<real_t>* tree = new Tree<real_t>(build_tree<real_t>((*sources), (*targets), (*fmm)));
   exafmm_t::init_rel_coord();
   build_list<real_t>((*tree), (*fmm));
   fmm->M2L_setup(tree->nonleafs);
   fmm->precompute();
-  Laplace* laplacefmm = new Laplace();
+  LaplaceStruct* laplacefmm = new LaplaceStruct();
   laplacefmm->fmm = fmm;
   laplacefmm->tree = tree;
-  return reinterpret_cast<void*> (laplacefmm);
+  return laplacefmm;
 }
 
-void* setup_helmholtz(void* src, void* trg, void* pfmm)
+void* setup_helmholtz(Bodies<complex_t>* sources, Bodies<complex_t>* targets, exafmm_t::HelmholtzFmm* fmm)
 {
-  Bodies<complex_t>* sources = reinterpret_cast<Bodies<complex_t>*> (src);
-  Bodies<complex_t>* targets = reinterpret_cast<Bodies<complex_t>*> (trg);
-  exafmm_t::HelmholtzFmm* fmm = reinterpret_cast<exafmm_t::HelmholtzFmm*> (pfmm);
-
   Tree<complex_t>* tree = new Tree<complex_t>(build_tree<complex_t>((*sources), (*targets), (*fmm)));
   exafmm_t::init_rel_coord();
   build_list<complex_t>((*tree), (*fmm));
   fmm->M2L_setup(tree->nonleafs);
   fmm->precompute();
-  Helmholtz* helmholtzfmm = new Helmholtz();
+  HelmholtzStruct* helmholtzfmm = new HelmholtzStruct();
   helmholtzfmm->fmm = fmm;
   helmholtzfmm->tree = tree;
-  return reinterpret_cast<void*> (helmholtzfmm);
+  return helmholtzfmm;
 }
 
-void* setup_modifiedhelmholtz(void* src, void* trg, void* pfmm)
+template <typename T>
+void* setup_modifiedhelmholtz(Bodies<real_t>* sources, Bodies<real_t>* targets, exafmm_t::ModifiedHelmholtzFmm* fmm)
 {
-  Bodies<real_t>* sources = reinterpret_cast<Bodies<real_t>*> (src);
-  Bodies<real_t>* targets = reinterpret_cast<Bodies<real_t>*> (trg);
-  exafmm_t::ModifiedHelmholtzFmm* fmm = reinterpret_cast<exafmm_t::ModifiedHelmholtzFmm*> (pfmm);
-
   Tree<real_t>* tree = new Tree<real_t>(build_tree<real_t>((*sources), (*targets), (*fmm)));
   exafmm_t::init_rel_coord();
   build_list<real_t>((*tree), (*fmm));
   fmm->M2L_setup(tree->nonleafs);
   fmm->precompute();
-  ModifiedHelmholtz* modifiedhelmholtzfmm = new ModifiedHelmholtz();
+  ModifiedHelmholtzStruct* modifiedhelmholtzfmm = new ModifiedHelmholtzStruct();
   modifiedhelmholtzfmm->fmm = fmm;
   modifiedhelmholtzfmm->tree = tree;
-  return reinterpret_cast<void*> (modifiedhelmholtzfmm);
+  return modifiedhelmholtzfmm;
 }
 
 real_t* evaluate_laplace(void* laplace) {
 
-  Laplace* laplacefmm = reinterpret_cast<Laplace*> (laplace);
+  LaplaceStruct* laplacefmm = reinterpret_cast<LaplaceStruct*> (laplace);
   laplacefmm->fmm->upward_pass(laplacefmm->tree->nodes, laplacefmm->tree->leafs, false);
   laplacefmm->fmm->downward_pass(laplacefmm->tree->nodes, laplacefmm->tree->leafs, false);
   
@@ -220,7 +216,7 @@ real_t* evaluate_laplace(void* laplace) {
 
 complex_t* evaluate_helmholtz(void* helmholtz) {
 
-  Helmholtz* helmholtzfmm = reinterpret_cast<Helmholtz*> (helmholtz);
+  HelmholtzStruct* helmholtzfmm = reinterpret_cast<HelmholtzStruct*> (helmholtz);
   helmholtzfmm->fmm->upward_pass(helmholtzfmm->tree->nodes, helmholtzfmm->tree->leafs, false);
   helmholtzfmm->fmm->downward_pass(helmholtzfmm->tree->nodes, helmholtzfmm->tree->leafs, false);
 
@@ -245,7 +241,7 @@ complex_t* evaluate_helmholtz(void* helmholtz) {
 
 real_t* evaluate_modifiedhelmholtzfmm(void* helmholtz) {
 
-  ModifiedHelmholtz* modifiedhelmholtzfmm = reinterpret_cast<ModifiedHelmholtz*> (helmholtz);
+  ModifiedHelmholtzStruct* modifiedhelmholtzfmm = reinterpret_cast<ModifiedHelmholtzStruct*> (helmholtz);
   modifiedhelmholtzfmm->fmm->upward_pass(modifiedhelmholtzfmm->tree->nodes, modifiedhelmholtzfmm->tree->leafs, false);
   modifiedhelmholtzfmm->fmm->downward_pass(modifiedhelmholtzfmm->tree->nodes, modifiedhelmholtzfmm->tree->leafs, false);
 
@@ -270,7 +266,7 @@ real_t* evaluate_modifiedhelmholtzfmm(void* helmholtz) {
 
 void update_charges_real(void* fmm, real_t* charges) {
   // update charges of sources
-  Laplace* laplacefmm = reinterpret_cast<Laplace*> (fmm);
+  LaplaceStruct* laplacefmm = reinterpret_cast<LaplaceStruct*> (fmm);
 #pragma omp parallel for
   for (size_t i=0; i<laplacefmm->tree->leafs.size(); ++i) {
     auto leaf = laplacefmm->tree->leafs[i];
@@ -283,7 +279,7 @@ void update_charges_real(void* fmm, real_t* charges) {
 
 void update_charges_cplx(void* fmm, complex_t* charges) {
   // update charges of sources
-  Helmholtz* helmholtzfmm = reinterpret_cast<Helmholtz*> (fmm);
+  HelmholtzStruct* helmholtzfmm = reinterpret_cast<HelmholtzStruct*> (fmm);
 #pragma omp parallel for
   for (size_t i=0; i<helmholtzfmm->tree->leafs.size(); ++i) {
     auto leaf = helmholtzfmm->tree->leafs[i];
@@ -296,7 +292,7 @@ void update_charges_cplx(void* fmm, complex_t* charges) {
 
 
 void clear_values(void* fmm) {
-  Laplace* laplacefmm = reinterpret_cast<Laplace*> (fmm);
+  LaplaceStruct* laplacefmm = reinterpret_cast<LaplaceStruct*> (fmm);
 #pragma omp parallel for
   for (size_t i=0; i<laplacefmm->tree->nodes.size(); ++i) {
     auto& node = laplacefmm->tree->nodes[i];
@@ -305,4 +301,20 @@ void clear_values(void* fmm) {
     if (node.is_leaf)
       std::fill(node.trg_value.begin(), node.trg_value.end(), 0.);
   }
+}
+
+void freestorage_real (exafmm_t::FmmBase<real_t>* fmm, void* fmmstruct, Bodies<real_t>* src, Bodies<real_t>* trg) {
+  LaplaceStruct* fmms = reinterpret_cast<LaplaceStruct*> (fmmstruct);
+  free(fmms->fmm);
+  free(fmms->tree);
+  free(src);
+  free(trg);
+}
+
+void freestorage_cplx(exafmm_t::FmmBase<complex_t>* fmm, void* fmmstruct, Bodies<complex_t>* src, Bodies<complex_t>* trg) {
+  LaplaceStruct* fmms = reinterpret_cast<LaplaceStruct*> (fmmstruct);
+  free(fmms->fmm);
+  free(fmms->tree);
+  free(src);
+  free(trg);
 }
