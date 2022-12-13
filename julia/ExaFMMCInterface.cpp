@@ -44,7 +44,7 @@ extern "C" {
   void freestorage_cplx(exafmm_t::FmmBase<complex_t>* fmm, void* fmmstruct, Bodies<complex_t>* src, Bodies<complex_t>* trg);
 }
 
-Bodies<real_t>* init_sources(real_t* coords , real_t* charges, int nsrcs) {
+Bodies<real_t>* init_sources_F(real_t* coords , real_t* charges, int nsrcs) {
   Bodies<real_t>* sources = new Bodies<real_t>(nsrcs);
   #pragma omp parallel for
   for(ssize_t i=0; i<nsrcs; ++i) {
