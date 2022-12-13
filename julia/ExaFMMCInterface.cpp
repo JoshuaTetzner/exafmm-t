@@ -24,7 +24,7 @@ template <typename T> using NodePtrs = exafmm_t::NodePtrs<T>;
 
 
 extern "C" {
-  Bodies<real_t>* init_sources(real_t* coords , real_t* charges, int nsrcs);
+  Bodies<real_t>* init_sources_F(real_t* coords , real_t* charges, int nsrcs);
   Bodies<complex_t>* init_sources_C(real_t* coords , complex_t* charges, int nsrcs);
   Bodies<real_t>* init_targets_F(real_t* coords, int ntarg);
   Bodies<complex_t>* init_targets_C(real_t* coords, int ntarg);
