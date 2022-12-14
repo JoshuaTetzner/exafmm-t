@@ -36,7 +36,7 @@ extern "C" {
   void* setup_modifiedhelmholtz(Bodies<real_t>* sources, Bodies<real_t>* targets, exafmm_t::ModifiedHelmholtzFmm* fmm);
   real_t* evaluate_laplace(void* fmmstruct);
   complex_t* evaluate_helmholtz(void* fmmstruct);
-  complex_t* evaluate_modifiedhelmholtz(void* fmmstruct);
+  real_t* evaluate_modifiedhelmholtz(void* fmmstruct);
   void update_charges_real(void* fmm, real_t* charges);
   void update_charges_cplx(void* fmm, complex_t* charges);
   void clear_values(void* fmm);
@@ -238,7 +238,7 @@ complex_t* evaluate_helmholtz(void* helmholtz) {
   return trg_value;
 }
 
-real_t* evaluate_modifiedhelmholtzfmm(void* helmholtz) {
+real_t* evaluate_modifiedhelmholtz(void* helmholtz) {
 
   ModifiedHelmholtzStruct* modifiedhelmholtzfmm = reinterpret_cast<ModifiedHelmholtzStruct*> (helmholtz);
   modifiedhelmholtzfmm->fmm->upward_pass(modifiedhelmholtzfmm->tree->nodes, modifiedhelmholtzfmm->tree->leafs, false);
