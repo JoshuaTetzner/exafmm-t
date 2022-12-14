@@ -33,7 +33,7 @@ extern "C" {
   exafmm_t::ModifiedHelmholtzFmm* ModifiedHelmholtzFMM(int p, int ncrit, real_t wavek);
   void* setup_laplace(Bodies<real_t>* sources, Bodies<real_t>* targets, exafmm_t::LaplaceFmm* fmm);
   void* setup_helmholtz(Bodies<complex_t>* src, Bodies<complex_t>* trg, exafmm_t::HelmholtzFmm* pfmm);
-  void* setup_modifiedhelmholtz(Bodies<real_t>* sources, Bodies<real_t>* targets, exafmm_t::ModifiedHelmholtzFmm* fmm)
+  void* setup_modifiedhelmholtz(Bodies<real_t>* sources, Bodies<real_t>* targets, exafmm_t::ModifiedHelmholtzFmm* fmm);
   real_t* evaluate_laplace(void* fmmstruct);
   complex_t* evaluate_helmholtz(void* fmmstruct);
   complex_t* evaluate_modifiedhelmholtz(void* fmmstruct);
