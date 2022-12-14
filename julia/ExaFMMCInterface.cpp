@@ -40,12 +40,16 @@ extern "C" {
   void update_charges_real(void* fmm, real_t* charges);
   void update_charges_cplx(void* fmm, complex_t* charges);
   void clear_values(void* fmm);
+  real_t* verify_laplace(void* fmm);
+  real_t* verify_helmholtz(void* fmm);
+  real_t* verify_modifiedhelmholtz(void* fmm);
   void freestorage_real (exafmm_t::FmmBase<real_t>* fmm, void* fmmstruct, Bodies<real_t>* src, Bodies<real_t>* trg);
   void freestorage_cplx(exafmm_t::FmmBase<complex_t>* fmm, void* fmmstruct, Bodies<complex_t>* src, Bodies<complex_t>* trg);
 }
 
 Bodies<real_t>* init_sources_F(real_t* coords , real_t* charges, int nsrcs) {
   Bodies<real_t>* sources = new Bodies<real_t>(nsrcs);
+  std::cout << sizeof(coords[0]) << std::endl;
   #pragma omp parallel for
   for(ssize_t i=0; i<nsrcs; ++i) {
     (*sources)[i].X[0] = coords[i+nsrcs*0];
@@ -300,6 +304,36 @@ void clear_values(void* fmm) {
     if (node.is_leaf)
       std::fill(node.trg_value.begin(), node.trg_value.end(), 0.);
   }
+}
+
+real_t* verify_laplace(void* fmm) {
+  LaplaceStruct* laplacefmm = reinterpret_cast<LaplaceStruct*> (fmm);
+  real_t* perr = new real_t[2]; 
+  auto err = laplacefmm->fmm->verify(laplacefmm->tree->leafs);
+  perr[0] = err[0];
+  perr[1] = err[1];
+
+  return perr;
+}
+
+real_t* verify_helmholtz(void* fmm) {
+  HelmholtzStruct* helmholtzfmm = reinterpret_cast<HelmholtzStruct*> (fmm);
+  real_t* perr = new real_t[2]; 
+  auto err = helmholtzfmm->fmm->verify(helmholtzfmm->tree->leafs);
+  perr[0] = err[0];
+  perr[1] = err[1];
+
+  return perr;
+}
+
+real_t* verify_modifiedhelmholtz(void* fmm) {
+  ModifiedHelmholtzStruct* mhelmholtzfmm = reinterpret_cast<ModifiedHelmholtzStruct*> (fmm);
+  real_t* perr = new real_t[2]; 
+  auto err = mhelmholtzfmm->fmm->verify(mhelmholtzfmm->tree->leafs);
+  perr[0] = err[0];
+  perr[1] = err[1];
+
+  return perr;
 }
 
 void freestorage_real (exafmm_t::FmmBase<real_t>* fmm, void* fmmstruct, Bodies<real_t>* src, Bodies<real_t>* trg) {
