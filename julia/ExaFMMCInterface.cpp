@@ -49,7 +49,6 @@ extern "C" {
 
 Bodies<real_t>* init_sources_F(real_t* coords , real_t* charges, int nsrcs) {
   Bodies<real_t>* sources = new Bodies<real_t>(nsrcs);
-  std::cout << sizeof(coords[0]) << std::endl;
   #pragma omp parallel for
   for(ssize_t i=0; i<nsrcs; ++i) {
     (*sources)[i].X[0] = coords[i+nsrcs*0];

@@ -36,21 +36,21 @@ find_package(FFTW REQUIRED)
 # targets
 include_directories (${PROJECT_SOURCE_DIR}/include)
 
-add_executable (fmm_laplace tests/fmm_laplace.cpp)
-add_executable (fmm_helmholtz tests/fmm_helmholtz.cpp)
-add_executable (fmm_modified_helmholtz tests/fmm_modified_helmholtz.cpp)
+#add_executable (fmm_laplace tests/fmm_laplace.cpp)
+#add_executable (fmm_helmholtz tests/fmm_helmholtz.cpp)
+#add_executable (fmm_modified_helmholtz tests/fmm_modified_helmholtz.cpp)
 
 
-target_link_libraries (fmm_laplace PRIVATE ${BLAS_LIBRARIES}
-                                   PRIVATE ${LAPACK_LIBRARIES}
-                                   PRIVATE ${FFTW_LIBRARIES})
-
-target_link_libraries (fmm_helmholtz PRIVATE ${BLAS_LIBRARIES}
-                                     PRIVATE ${LAPACK_LIBRARIES}
-                                     PRIVATE ${FFTW_LIBRARIES})
-
-target_link_libraries (fmm_modified_helmholtz PRIVATE ${BLAS_LIBRARIES}
-                                              PRIVATE ${LAPACK_LIBRARIES}
-                                              PRIVATE ${FFTW_LIBRARIES})
+#target_link_libraries (fmm_laplace PRIVATE ${BLAS_LIBRARIES}
+#                                   PRIVATE ${LAPACK_LIBRARIES}
+#                                   PRIVATE ${FFTW_LIBRARIES})
+#
+#target_link_libraries (fmm_helmholtz PRIVATE ${BLAS_LIBRARIES}
+#                                     PRIVATE ${LAPACK_LIBRARIES}
+#                                     PRIVATE ${FFTW_LIBRARIES})
+#
+#target_link_libraries (fmm_modified_helmholtz PRIVATE ${BLAS_LIBRARIES}
+#                                              PRIVATE ${LAPACK_LIBRARIES}
+#                                              PRIVATE ${FFTW_LIBRARIES})
 
 add_subdirectory(julia)

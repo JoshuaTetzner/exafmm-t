@@ -9,12 +9,22 @@ endif()
 
 target_link_libraries (ExaFMMCInterface PRIVATE ${BLAS_LIBRARIES}
                                         PRIVATE ${LAPACK_LIBRARIES}
-                                        PRIVATE ${FFTW_LIBRARIES})
+                                        PRIVATE ${FFTW_LIBRARIES}
+                                        PRIVATE OpenMP::OpenMP_CXX)
+
+target_link_libraries (ExaFMMCInterface
+        PUBLIC OpenMP::OpenMP_CXX
+)
+
+target_link_libraries (ExaFMMCInterface32
+        PUBLIC OpenMP::OpenMP_CXX
+)
 
 target_link_libraries (ExaFMMCInterface32
         PRIVATE ${BLAS_LIBRARIES}
         PRIVATE ${LAPACK_LIBRARIES}
         PRIVATE ${FFTW_LIBRARIES}
+        PRIVATE OpenMP::OpenMP_CXX
 )
 
 install(TARGETS ExaFMMCInterface 
